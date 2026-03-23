@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>PocketMine-MP Crashdump Analyzer — Decode Server Crashes Instantly</title>
+<meta name="description" content="Free online PocketMine-MP crashdump analyzer. Paste your .crash or .log file and get a human-readable diagnosis: which plugin crashed, what error occurred, and how to fix it. Works with PMMP 4.x and 5.x.">
+<meta name="keywords" content="PocketMine, PocketMine-MP, PMMP, crashdump, crash analyzer, Minecraft Bedrock, Pocket Edition, server crash, stack trace, plugin error, crash decoder, PMP, Bedrock server, MCPE, crash fix">
+<meta name="author" content="w1zardz">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://w1zardz.github.io/crashdump-analyzer-pmmp/">
+
+<!-- Open Graph -->
+<meta property="og:title" content="PocketMine-MP Crashdump Analyzer">
+<meta property="og:description" content="Paste your PocketMine crash log and get an instant human-readable diagnosis. Find out which plugin crashed your server and how to fix it.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://w1zardz.github.io/crashdump-analyzer-pmmp/">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="PMMP Crashdump Analyzer">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PocketMine-MP Crashdump Analyzer">
+<meta name="twitter:description" content="Decode PocketMine server crashes instantly. Paste crashdump, get human-readable diagnosis.">
+
+<!-- Yandex -->
+<meta name="yandex-verification" content="">
+
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "PocketMine-MP Crashdump Analyzer",
+  "description": "Free online tool to analyze PocketMine-MP server crashdumps. Parses stack traces and provides human-readable error diagnostics for PMMP 4.x and 5.x servers.",
+  "url": "https://w1zardz.github.io/crashdump-analyzer-pmmp/",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "w1zardz",
+    "url": "https://github.com/w1zardz"
+  },
+  "keywords": "PocketMine-MP, PMMP, crashdump, crash analyzer, Minecraft Bedrock, stack trace, plugin error"
+}
+</script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;
+  --text:#e6edf3;--text2:#8b949e;--accent:#58a6ff;--accent2:#1f6feb;
+  --green:#3fb950;--red:#f85149;--orange:#d29922;--purple:#bc8cff;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+.container{max-width:960px;margin:0 auto;padding:0 16px}
+
+/* Header */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 0;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(22,27,34,.85)}
+header .container{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-size:1.25rem;font-weight:700;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.logo svg{flex-shrink:0}
+.badge{font-size:.7rem;background:var(--accent2);color:#fff;padding:2px 8px;border-radius:12px;font-weight:600;white-space:nowrap}
+header nav{margin-left:auto;display:flex;gap:16px;align-items:center}
+header nav a{color:var(--text2);text-decoration:none;font-size:.875rem;transition:color .2s}
+header nav a:hover{color:var(--accent)}
+
+/* Hero */
+.hero{text-align:center;padding:48px 0 32px}
+.hero h1{font-size:clamp(1.5rem,5vw,2.25rem);font-weight:800;margin-bottom:12px;line-height:1.2}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--text2);font-size:clamp(.9rem,2.5vw,1.1rem);max-width:600px;margin:0 auto}
+
+/* Main area */
+.analyzer{display:grid;gap:20px;padding-bottom:48px}
+
+/* Input section */
+.input-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.input-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.input-header h2{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+.input-actions{display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.btn-primary:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+
+textarea{width:100%;min-height:260px;padding:16px;background:transparent;border:none;color:var(--text);font-family:'SF Mono',SFMono-Regular,Consolas,'Liberation Mono',Menlo,monospace;font-size:.8rem;resize:vertical;outline:none;line-height:1.5}
+textarea::placeholder{color:var(--text2)}
+
+.drop-zone{position:relative}
+.drop-overlay{display:none;position:absolute;inset:0;background:rgba(31,111,235,.15);border:2px dashed var(--accent);border-radius:12px;z-index:10;align-items:center;justify-content:center;font-size:1.1rem;font-weight:600;color:var(--accent);pointer-events:none}
+.drop-zone.dragging .drop-overlay{display:flex}
+.file-input{display:none}
+
+/* Results */
+.results{display:none}
+.results.visible{display:block}
+
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.result-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.result-header .icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem}
+.severity-critical .icon{background:rgba(248,81,73,.15);color:var(--red)}
+.severity-warning .icon{background:rgba(210,153,34,.15);color:var(--orange)}
+.severity-info .icon{background:rgba(88,166,255,.15);color:var(--accent)}
+.severity-success .icon{background:rgba(63,185,80,.15);color:var(--green)}
+.result-header h3{font-size:.95rem;font-weight:600}
+.result-header .severity-label{margin-left:auto;font-size:.7rem;font-weight:700;padding:2px 10px;border-radius:12px;text-transform:uppercase}
+.severity-critical .severity-label{background:rgba(248,81,73,.15);color:var(--red)}
+.severity-warning .severity-label{background:rgba(210,153,34,.15);color:var(--orange)}
+.severity-info .severity-label{background:rgba(88,166,255,.15);color:var(--accent)}
+
+.result-body{padding:16px}
+.result-body p{margin-bottom:8px;font-size:.875rem;color:var(--text2)}
+.result-body strong{color:var(--text)}
+.result-body code{background:var(--surface2);padding:2px 6px;border-radius:4px;font-size:.8rem;font-family:'SF Mono',SFMono-Regular,Consolas,'Liberation Mono',Menlo,monospace;color:var(--purple)}
+.result-body .suggestion{margin-top:12px;padding:12px;background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.2);border-radius:8px;font-size:.85rem;color:var(--green)}
+.result-body .suggestion::before{content:'💡 ';font-size:1rem}
+
+/* Stack trace */
+.stack-trace{margin-top:12px;background:var(--bg);border-radius:8px;overflow:hidden}
+.stack-frame{padding:8px 12px;border-bottom:1px solid var(--border);font-size:.78rem;font-family:'SF Mono',SFMono-Regular,Consolas,'Liberation Mono',Menlo,monospace;display:flex;gap:8px;flex-wrap:wrap;align-items:baseline}
+.stack-frame:last-child{border-bottom:none}
+.stack-frame .frame-num{color:var(--text2);min-width:24px}
+.stack-frame .frame-file{color:var(--accent);word-break:break-all}
+.stack-frame .frame-line{color:var(--orange)}
+.stack-frame .frame-func{color:var(--purple);word-break:break-all}
+.stack-frame.highlight{background:rgba(248,81,73,.08)}
+
+/* Server info */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.info-item{padding:10px 12px;background:var(--bg);border-radius:8px;font-size:.82rem}
+.info-item .label{color:var(--text2);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.info-item .value{font-weight:600;word-break:break-all}
+
+/* Plugins list */
+.plugin-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.plugin-tag{padding:4px 10px;background:var(--bg);border-radius:6px;font-size:.78rem;border:1px solid var(--border)}
+.plugin-tag.culprit{border-color:var(--red);background:rgba(248,81,73,.1);color:var(--red);font-weight:600}
+
+/* Empty state */
+.empty-state{text-align:center;padding:48px 16px;color:var(--text2)}
+.empty-state svg{margin-bottom:16px;opacity:.5}
+.empty-state p{font-size:.9rem}
+
+/* Footer */
+footer{border-top:1px solid var(--border);padding:24px 0;text-align:center;color:var(--text2);font-size:.8rem}
+footer a{color:var(--accent);text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* FAQ / SEO content */
+.faq{padding:32px 0 48px}
+.faq h2{font-size:1.25rem;font-weight:700;margin-bottom:20px;text-align:center}
+.faq-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.faq-q{padding:14px 16px;font-weight:600;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;user-select:none;-webkit-tap-highlight-color:transparent}
+.faq-q::after{content:'+';font-size:1.2rem;color:var(--text2);flex-shrink:0;transition:transform .2s}
+.faq-item.open .faq-q::after{transform:rotate(45deg)}
+.faq-a{padding:0 16px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;font-size:.85rem;color:var(--text2);line-height:1.7}
+.faq-item.open .faq-a{max-height:500px;padding:0 16px 14px}
+
+/* Mobile tweaks */
+@media(max-width:600px){
+  .hero{padding:32px 0 20px}
+  textarea{min-height:200px;font-size:.75rem;padding:12px}
+  .info-grid{grid-template-columns:1fr}
+  header nav{font-size:.8rem;gap:10px}
+  .result-header{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <a href="./" class="logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      PMMP Crash Analyzer
+    </a>
+    <span class="badge">PMMP 4.x / 5.x</span>
+    <nav>
+      <a href="#analyzer">Analyzer</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/w1zardz/crashdump-analyzer-pmmp" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <h1>Decode Your <span>PocketMine</span> Crash Instantly</h1>
+      <p>Paste a crashdump or drag &amp; drop a <code>.crash</code> / <code>.log</code> file. Get a clear, human-readable diagnosis in seconds&nbsp;&mdash; no more guessing why your server went down.</p>
+    </div>
+  </section>
+
+  <div class="container analyzer" id="analyzer">
+    <div class="input-section drop-zone" id="dropZone">
+      <div class="drop-overlay">Drop crashdump file here</div>
+      <div class="input-header">
+        <h2>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Crashdump Input
+        </h2>
+        <div class="input-actions">
+          <label class="btn" for="fileInput">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload
+          </label>
+          <input type="file" id="fileInput" class="file-input" accept=".crash,.log,.txt,.crashdump">
+          <button class="btn" id="pasteBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Paste
+          </button>
+          <button class="btn" id="clearBtn">Clear</button>
+          <button class="btn btn-primary" id="analyzeBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Analyze
+          </button>
+        </div>
+      </div>
+      <textarea id="crashInput" placeholder="Paste your PocketMine-MP crashdump here...
+
+Example formats supported:
+- CrashDump files (.crash)
+- Server log files (.log)
+- Raw crash output from console
+
+The analyzer supports crashdumps from PocketMine-MP 3.x, 4.x, and 5.x" spellcheck="false"></textarea>
+    </div>
+
+    <div class="results" id="results"></div>
+  </div>
+
+  <section class="faq container" id="faq">
+    <h2>Frequently Asked Questions</h2>
+
+    <article class="faq-item">
+      <div class="faq-q" role="button" tabindex="0">What is a PocketMine-MP crashdump?</div>
+      <div class="faq-a">A crashdump is an automatically generated file that PocketMine-MP creates when the server crashes. It contains vital debugging information including the error message, a stack trace showing exactly where the crash occurred, server configuration details, loaded plugins, and PHP version info. Crashdumps are stored in the <code>crashdumps/</code> folder inside your server directory.</div>
+    </article>
+
+    <article class="faq-item">
+      <div class="faq-q" role="button" tabindex="0">How does this analyzer work?</div>
+      <div class="faq-a">The analyzer parses the crashdump text entirely in your browser — no data is ever sent to any server. It identifies the error type, extracts the stack trace, determines which plugin (if any) caused the crash, and provides human-readable suggestions for fixing the issue. It recognizes common error patterns like null method calls, class not found errors, type mismatches, and memory issues.</div>
+    </article>
+
+    <article class="faq-item">
+      <div class="faq-q" role="button" tabindex="0">Which PocketMine-MP versions are supported?</div>
+      <div class="faq-a">This tool supports crashdumps from PocketMine-MP 3.x, 4.x, and 5.x (the latest version). The crashdump format is largely consistent across versions, so even older crashdumps should be analyzed correctly. It also works with forks like Altay, Genisys, and NukkitX if they follow a similar crashdump format.</div>
+    </article>
+
+    <article class="faq-item">
+      <div class="faq-q" role="button" tabindex="0">Is my crashdump data private?</div>
+      <div class="faq-a">Yes. All analysis happens locally in your browser using JavaScript. Your crashdump content is never uploaded, stored, or transmitted anywhere. You can use this tool offline once the page has loaded.</div>
+    </article>
+
+    <article class="faq-item">
+      <div class="faq-q" role="button" tabindex="0">My server crashed but there is no crashdump file, what do I do?</div>
+      <div class="faq-a">If PocketMine-MP didn't generate a crashdump, check your server console output or <code>server.log</code> for error messages. Crashes caused by out-of-memory errors or segmentation faults may not produce crashdumps. You can also try running the server with <code>--debug.level=2</code> to get more verbose logging. Copy any error output you find and paste it here — the analyzer can often still extract useful information from partial logs.</div>
+    </article>
+
+    <article class="faq-item">
+      <div class="faq-q" role="button" tabindex="0">How do I fix a plugin crash?</div>
+      <div class="faq-a">If the analyzer identifies a specific plugin as the crash cause: 1) Check if there's a newer version of the plugin available. 2) Temporarily remove the plugin to confirm it's the cause. 3) Report the crash to the plugin developer with the analyzed output. 4) If you wrote the plugin yourself, look at the specific file and line number mentioned in the stack trace to find and fix the bug.</div>
+    </article>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <p>Built for the <a href="https://github.com/pmmp/PocketMine-MP" target="_blank" rel="noopener">PocketMine-MP</a> community &mdash; <a href="https://github.com/w1zardz/crashdump-analyzer-pmmp" target="_blank" rel="noopener">Star on GitHub</a></p>
+    <p style="margin-top:6px;font-size:.75rem">100% client-side. No data leaves your browser.</p>
+  </div>
+</footer>
+
+<!-- FAQ Schema for SEO -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"FAQPage",
+  "mainEntity":[
+    {"@type":"Question","name":"What is a PocketMine-MP crashdump?","acceptedAnswer":{"@type":"Answer","text":"A crashdump is an automatically generated file that PocketMine-MP creates when the server crashes. It contains the error message, stack trace, server configuration, loaded plugins, and PHP version info."}},
+    {"@type":"Question","name":"How does this crashdump analyzer work?","acceptedAnswer":{"@type":"Answer","text":"The analyzer parses the crashdump text entirely in your browser. It identifies the error type, extracts the stack trace, determines which plugin caused the crash, and provides human-readable fix suggestions."}},
+    {"@type":"Question","name":"Which PocketMine-MP versions are supported?","acceptedAnswer":{"@type":"Answer","text":"This tool supports crashdumps from PocketMine-MP 3.x, 4.x, and 5.x. It also works with forks like Altay and Genisys."}},
+    {"@type":"Question","name":"Is my crashdump data private?","acceptedAnswer":{"@type":"Answer","text":"Yes. All analysis happens locally in your browser using JavaScript. Your crashdump content is never uploaded or transmitted anywhere."}}
+  ]
+}
+</script>
+
+<script>
+(function(){
+'use strict';
+
+// DOM refs
+const input = document.getElementById('crashInput');
+const results = document.getElementById('results');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const clearBtn = document.getElementById('clearBtn');
+const pasteBtn = document.getElementById('pasteBtn');
+const fileInput = document.getElementById('fileInput');
+const dropZone = document.getElementById('dropZone');
+
+// Events
+analyzeBtn.addEventListener('click', () => analyze(input.value));
+clearBtn.addEventListener('click', () => { input.value = ''; results.innerHTML = ''; results.classList.remove('visible'); });
+pasteBtn.addEventListener('click', async () => {
+  try { input.value = await navigator.clipboard.readText(); analyze(input.value); } catch(e) { input.focus(); }
+});
+fileInput.addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader(); r.onload = ev => { input.value = ev.target.result; analyze(ev.target.result); }; r.readAsText(f);
+});
+
+// Drag & drop
+['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('dragging'); }));
+['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('dragging'); }));
+dropZone.addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0]; if (!f) return;
+  const r = new FileReader(); r.onload = ev => { input.value = ev.target.result; analyze(ev.target.result); }; r.readAsText(f);
+});
+
+// FAQ toggles
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => q.parentElement.classList.toggle('open'));
+  q.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){e.preventDefault();q.click();}});
+});
+
+// ---- ANALYZER ENGINE ----
+
+function analyze(raw) {
+  if (!raw || !raw.trim()) return;
+  results.innerHTML = '';
+  results.classList.add('visible');
+
+  const data = parseCrashdump(raw);
+  renderResults(data);
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function parseCrashdump(raw) {
+  const d = {
+    error: null, errorType: null, errorMessage: null,
+    file: null, line: null,
+    pluginCulprit: null,
+    stackTrace: [],
+    serverInfo: {},
+    plugins: [],
+    rawSections: {}
+  };
+
+  // Try to detect base64-encoded crashdump
+  const b64Match = raw.match(/===BEGIN CRASHDUMP===\s*([\s\S]*?)\s*===END CRASHDUMP===/);
+  if (b64Match) {
+    try {
+      const decoded = atob(b64Match[1].replace(/\s/g, ''));
+      const json = JSON.parse(decoded);
+      return parseCrashdumpJSON(json);
+    } catch(e) {
+      // Fall through to text parsing
+    }
+    try {
+      const decoded = atob(b64Match[1].replace(/\s/g, ''));
+      // Try zlib decompression is not available in vanilla JS, try as text
+      raw = decoded + '\n' + raw;
+    } catch(e) {}
+  }
+
+  // Try JSON crashdump format (PMMP 5.x)
+  try {
+    const json = JSON.parse(raw);
+    if (json.error || json.crashData || json.general) {
+      return parseCrashdumpJSON(json);
+    }
+  } catch(e) {}
+
+  // Text-based parsing
+  const lines = raw.split('\n');
+
+  // Extract error line
+  for (const line of lines) {
+    // Common patterns: "Error: ...", "Fatal error: ...", "Uncaught ...", "[CRITICAL] ..."
+    let m;
+    if ((m = line.match(/(?:Fatal error|Error|Uncaught\s+\w+):\s*(.+)/i))) {
+      d.error = m[0];
+      d.errorMessage = m[1].trim();
+    }
+    if ((m = line.match(/\[(?:CRITICAL|EMERGENCY|ERROR)\]\s*(.+)/i))) {
+      if (!d.error) { d.error = m[0]; d.errorMessage = m[1].trim(); }
+    }
+    // "Caused by:" pattern
+    if ((m = line.match(/Caused by.*?:\s*(.+)/i))) {
+      d.error = m[0];
+      d.errorMessage = m[1].trim();
+    }
+  }
+
+  // Classify error type
+  if (d.errorMessage) {
+    const msg = d.errorMessage;
+    if (/Call to (?:a member function|undefined method)\s+\S+\s+on\s+null/i.test(msg)) {
+      d.errorType = 'null_method_call';
+    } else if (/Class\s+['"]?\S+['"]?\s+not found/i.test(msg)) {
+      d.errorType = 'class_not_found';
+    } else if (/Cannot access offset/i.test(msg) || /Undefined (?:offset|index|array key)/i.test(msg)) {
+      d.errorType = 'undefined_offset';
+    } else if (/Argument #?\d+.*must be of type/i.test(msg) || /TypeError/i.test(msg)) {
+      d.errorType = 'type_error';
+    } else if (/Allowed memory size/i.test(msg)) {
+      d.errorType = 'out_of_memory';
+    } else if (/Maximum execution time/i.test(msg)) {
+      d.errorType = 'timeout';
+    } else if (/Undefined property/i.test(msg)) {
+      d.errorType = 'undefined_property';
+    } else if (/Cannot (?:redeclare|re-declare)/i.test(msg)) {
+      d.errorType = 'redeclare';
+    } else if (/Segmentation fault|segfault/i.test(msg)) {
+      d.errorType = 'segfault';
+    } else if (/Internal server error|internal error/i.test(msg)) {
+      d.errorType = 'internal';
+    } else if (/Permission denied/i.test(msg)) {
+      d.errorType = 'permission';
+    } else {
+      d.errorType = 'generic';
+    }
+  }
+
+  // Extract stack trace
+  for (const line of lines) {
+    let m;
+    // Format: #N path/file.php(LINE): Class->method()
+    if ((m = line.match(/#(\d+)\s+(.+?)\((\d+)\):\s*(.+)/))) {
+      d.stackTrace.push({ num: parseInt(m[1]), file: m[2].trim(), line: parseInt(m[3]), func: m[4].trim() });
+    }
+    // Format: #N path/file.php(LINE)
+    else if ((m = line.match(/#(\d+)\s+(.+?)\((\d+)\)\s*$/))) {
+      d.stackTrace.push({ num: parseInt(m[1]), file: m[2].trim(), line: parseInt(m[3]), func: '' });
+    }
+    // Format in some logs: at path/file.php:LINE
+    else if ((m = line.match(/^\s+at\s+(.+?):(\d+)/))) {
+      d.stackTrace.push({ num: d.stackTrace.length, file: m[1].trim(), line: parseInt(m[2]), func: '' });
+    }
+  }
+
+  // Extract file/line from error
+  if (d.stackTrace.length > 0) {
+    d.file = d.stackTrace[0].file;
+    d.line = d.stackTrace[0].line;
+  } else {
+    const m = raw.match(/(?:in\s+)?(\S+\.php)(?:\s+on\s+line\s+|\(|:)(\d+)/i);
+    if (m) { d.file = m[1]; d.line = parseInt(m[2]); }
+  }
+
+  // Detect plugin culprit from stack trace
+  for (const frame of d.stackTrace) {
+    let m;
+    if ((m = frame.file.match(/plugins[\/\\]([^\/\\]+)/))) {
+      d.pluginCulprit = m[1]; break;
+    }
+    if ((m = frame.file.match(/plugin_data[\/\\]([^\/\\]+)/))) {
+      d.pluginCulprit = m[1]; break;
+    }
+    // "src/Author/PluginName" pattern in phar
+    if ((m = frame.file.match(/phar:\/\/.*?([^\/\\]+)\.phar/))) {
+      d.pluginCulprit = m[1]; break;
+    }
+    if ((m = frame.func.match(/^([A-Za-z0-9_]+\\)*([A-Za-z0-9_]+)->/) || frame.func.match(/^([A-Za-z0-9_]+\\)*([A-Za-z0-9_]+)::/))) {
+      // Only if it doesn't look like pocketmine internals
+      const ns = frame.func.split('\\')[0];
+      if (ns && !['pocketmine','raklib','snooze','phar'].includes(ns.toLowerCase())) {
+        if (!d.pluginCulprit) d.pluginCulprit = ns;
+      }
+    }
+  }
+
+  // Extract server info
+  for (const line of lines) {
+    let m;
+    if ((m = line.match(/PocketMine-MP\s+([\d.]+(?:-[^\s,)]+)?)/i))) d.serverInfo.pmmpVersion = m[1];
+    if ((m = line.match(/PHP\s+(?:Version:?\s*)?([\d.]+(?:-[^\s,)]+)?)/i)) && !d.serverInfo.phpVersion) d.serverInfo.phpVersion = m[1];
+    if ((m = line.match(/API\s*(?:Version:?\s*)?([\d.]+)/i))) d.serverInfo.apiVersion = m[1];
+    if ((m = line.match(/OS\s*:\s*(.+)/i))) d.serverInfo.os = m[1].trim();
+    if ((m = line.match(/Server\s+uptime:\s*(.+)/i))) d.serverInfo.uptime = m[1].trim();
+    if ((m = line.match(/(?:Git\s+commit|git):\s*([a-f0-9]+)/i))) d.serverInfo.gitCommit = m[1];
+  }
+
+  // Extract plugins list
+  const pluginSection = raw.match(/(?:Loaded\s+plugins|Plugin\s+list|Plugins):\s*\n?([\s\S]*?)(?:\n\n|\n[A-Z]|\n---)/i);
+  if (pluginSection) {
+    const pLines = pluginSection[1].split('\n');
+    for (const pl of pLines) {
+      const pm = pl.match(/([A-Za-z0-9_-]+)\s+(?:v?[\d.]+|[\d.]+)/);
+      if (pm) d.plugins.push(pm[1]);
+    }
+  }
+  // Also try inline format: "Plugin1 v1.0, Plugin2 v2.0"
+  const inlinePlugins = raw.match(/(?:Loaded\s+plugins|Plugins?):\s*(.+)/i);
+  if (inlinePlugins && d.plugins.length === 0) {
+    const parts = inlinePlugins[1].split(/[,;]/);
+    for (const p of parts) {
+      const pm = p.trim().match(/^([A-Za-z0-9_-]+)/);
+      if (pm && pm[1].length > 1) d.plugins.push(pm[1]);
+    }
+  }
+
+  return d;
+}
+
+function parseCrashdumpJSON(json) {
+  const d = {
+    error: null, errorType: null, errorMessage: null,
+    file: null, line: null,
+    pluginCulprit: null,
+    stackTrace: [],
+    serverInfo: {},
+    plugins: [],
+  };
+
+  // Extract from JSON structure
+  const err = json.error || json.crashData?.error || {};
+  d.errorMessage = err.message || err.type || json.error?.message || '';
+  d.error = (err.type ? err.type + ': ' : '') + d.errorMessage;
+  d.file = err.file || err.fullFile || '';
+  d.line = err.line || 0;
+
+  const general = json.general || json.crashData?.general || {};
+  if (general.version) d.serverInfo.pmmpVersion = general.version;
+  if (general.php) d.serverInfo.phpVersion = general.php;
+  if (general.api) d.serverInfo.apiVersion = general.api;
+  if (general.os) d.serverInfo.os = general.os;
+  if (general.git) d.serverInfo.gitCommit = general.git;
+
+  const trace = json.trace || json.crashData?.trace || err.trace || [];
+  for (let i = 0; i < trace.length; i++) {
+    const t = trace[i];
+    d.stackTrace.push({
+      num: i,
+      file: t.file || '?',
+      line: t.line || 0,
+      func: (t.class ? t.class + (t.type || '->') : '') + (t.function || t.call || '')
+    });
+  }
+
+  const plugins = json.plugins || json.crashData?.plugins || {};
+  for (const name of Object.keys(plugins)) {
+    d.plugins.push(name);
+  }
+
+  // Re-detect culprit and error type via text parser logic
+  const textParsed = parseCrashdump(d.error + '\n' + d.stackTrace.map((f,i) => `#${i} ${f.file}(${f.line}): ${f.func}`).join('\n'));
+  d.errorType = textParsed.errorType || 'generic';
+  if (textParsed.pluginCulprit) d.pluginCulprit = textParsed.pluginCulprit;
+
+  return d;
+}
+
+// ---- RENDER ----
+
+function renderResults(data) {
+  let html = '';
+
+  // 1. Diagnosis card
+  if (data.errorMessage) {
+    const diagnosis = getDiagnosis(data);
+    html += card('Diagnosis', diagnosis.title, diagnosis.body, diagnosis.severity);
+  } else {
+    html += card('No Error Detected',
+      'Could not find a recognizable error pattern',
+      '<p>The input may not be a valid PocketMine-MP crashdump, or it uses an unrecognized format. Try pasting the full crashdump content including the stack trace.</p>',
+      'warning'
+    );
+  }
+
+  // 2. Error details
+  if (data.error) {
+    html += card('Error Details', 'Raw error information', `
+      <p><strong>Error:</strong> <code>${esc(data.errorMessage)}</code></p>
+      ${data.file ? `<p><strong>File:</strong> <code>${esc(data.file)}</code></p>` : ''}
+      ${data.line ? `<p><strong>Line:</strong> <code>${data.line}</code></p>` : ''}
+      ${data.pluginCulprit ? `<p><strong>Likely plugin:</strong> <code>${esc(data.pluginCulprit)}</code></p>` : ''}
+    `, 'info');
+  }
+
+  // 3. Stack trace
+  if (data.stackTrace.length > 0) {
+    let stHtml = '<div class="stack-trace">';
+    for (const f of data.stackTrace) {
+      const isPlugin = /plugin|phar/i.test(f.file);
+      stHtml += `<div class="stack-frame${isPlugin ? ' highlight' : ''}">
+        <span class="frame-num">#${f.num}</span>
+        <span class="frame-file">${esc(f.file)}</span>
+        <span class="frame-line">:${f.line}</span>
+        ${f.func ? `<span class="frame-func">${esc(f.func)}</span>` : ''}
+      </div>`;
+    }
+    stHtml += '</div>';
+    html += card('Stack Trace', `${data.stackTrace.length} frames`, stHtml, 'info');
+  }
+
+  // 4. Server info
+  const si = data.serverInfo;
+  if (Object.keys(si).length > 0) {
+    let infoHtml = '<div class="info-grid">';
+    if (si.pmmpVersion) infoHtml += infoItem('PocketMine-MP', si.pmmpVersion);
+    if (si.phpVersion) infoHtml += infoItem('PHP Version', si.phpVersion);
+    if (si.apiVersion) infoHtml += infoItem('API Version', si.apiVersion);
+    if (si.os) infoHtml += infoItem('Operating System', si.os);
+    if (si.uptime) infoHtml += infoItem('Server Uptime', si.uptime);
+    if (si.gitCommit) infoHtml += infoItem('Git Commit', si.gitCommit);
+    infoHtml += '</div>';
+    html += card('Server Information', 'Environment details', infoHtml, 'info');
+  }
+
+  // 5. Plugins
+  if (data.plugins.length > 0) {
+    let plHtml = '<div class="plugin-list">';
+    for (const p of data.plugins) {
+      const isCulprit = data.pluginCulprit && p.toLowerCase() === data.pluginCulprit.toLowerCase();
+      plHtml += `<span class="plugin-tag${isCulprit ? ' culprit' : ''}">${esc(p)}${isCulprit ? ' (crash source)' : ''}</span>`;
+    }
+    plHtml += '</div>';
+    html += card('Loaded Plugins', `${data.plugins.length} plugins`, plHtml, 'info');
+  }
+
+  results.innerHTML = html;
+}
+
+function getDiagnosis(data) {
+  const msg = data.errorMessage || '';
+  const plugin = data.pluginCulprit;
+  const file = data.file || 'unknown file';
+  const line = data.line || '?';
+
+  const pluginNote = plugin
+    ? `The crash originated in plugin <code>${esc(plugin)}</code>.`
+    : 'The crash appears to be in PocketMine-MP core or the source could not be determined.';
+
+  switch (data.errorType) {
+    case 'null_method_call': {
+      const methodMatch = msg.match(/(?:function|method)\s+(\S+)\(\)/i);
+      const method = methodMatch ? methodMatch[1] : 'a method';
+      return {
+        severity: 'critical',
+        title: 'Method called on null object',
+        body: `<p>Your server crashed because the code tried to call <code>${esc(method)}()</code> on a <strong>null</strong> value at <code>${esc(file)}:${line}</code>.</p>
+        <p>${pluginNote}</p>
+        <div class="suggestion">
+          ${plugin
+            ? `Update the plugin <strong>${esc(plugin)}</strong> to the latest version. If you are the developer, add a null check before calling <code>${esc(method)}()</code> on line ${line}. This often happens when a player disconnects mid-operation or when an entity/block is no longer valid.`
+            : `This may be a PocketMine-MP bug. Check if you're running the latest version. If the issue persists, report it on the PMMP GitHub issues page with this crashdump.`}
+        </div>`
+      };
+    }
+    case 'class_not_found': {
+      const classMatch = msg.match(/Class\s+['"]?(\S+?)['"]?\s+not found/i);
+      const cls = classMatch ? classMatch[1] : 'Unknown';
+      return {
+        severity: 'critical',
+        title: `Class not found: ${cls}`,
+        body: `<p>The class <code>${esc(cls)}</code> could not be loaded. This usually means a plugin dependency is missing or the plugin is incompatible with your PMMP version.</p>
+        <p>${pluginNote}</p>
+        <div class="suggestion">
+          ${plugin
+            ? `Check that <strong>${esc(plugin)}</strong> is compatible with your PocketMine-MP version. The class <code>${esc(cls)}</code> may have been moved or renamed in a newer API version. Also ensure all required dependency plugins are installed.`
+            : `Make sure you're running the correct PocketMine-MP version. This class may have been removed or relocated in an API update.`}
+        </div>`
+      };
+    }
+    case 'type_error':
+      return {
+        severity: 'critical',
+        title: 'Type mismatch error',
+        body: `<p>A function received an argument of the wrong type at <code>${esc(file)}:${line}</code>.</p>
+        <p><code>${esc(msg)}</code></p>
+        <p>${pluginNote}</p>
+        <div class="suggestion">
+          ${plugin
+            ? `Plugin <strong>${esc(plugin)}</strong> is passing incorrect data types. This typically happens after a PocketMine-MP API update that changed method signatures. Update the plugin to a version compatible with your server.`
+            : `This may indicate an API incompatibility. Ensure all plugins are up to date with your PocketMine-MP version.`}
+        </div>`
+      };
+    case 'out_of_memory':
+      return {
+        severity: 'critical',
+        title: 'Out of memory',
+        body: `<p>The server ran out of available memory (RAM).</p>
+        <p>${pluginNote}</p>
+        <div class="suggestion">
+          Increase the memory limit in <code>php.ini</code> or start PocketMine with more memory: <code>./start.sh --memory=1024</code>. If a plugin is the cause, it may have a memory leak — try removing plugins one by one to find the culprit. Reduce view distance and loaded chunks to lower memory usage.
+        </div>`
+      };
+    case 'timeout':
+      return {
+        severity: 'critical',
+        title: 'Maximum execution time exceeded',
+        body: `<p>A script took too long to execute, causing the server to freeze and crash.</p>
+        <p>${pluginNote}</p>
+        <div class="suggestion">
+          ${plugin
+            ? `Plugin <strong>${esc(plugin)}</strong> is running an operation that takes too long (possibly an infinite loop or heavy database query). Contact the plugin developer or remove the plugin.`
+            : `Check for plugins running heavy synchronous operations. Database queries, file operations, and HTTP requests should be done asynchronously.`}
+        </div>`
+      };
+    case 'undefined_offset':
+      return {
+        severity: 'warning',
+        title: 'Undefined array key / offset',
+        body: `<p>The code tried to access an array element that doesn't exist at <code>${esc(file)}:${line}</code>.</p>
+        <p>${pluginNote}</p>
+        <div class="suggestion">
+          ${plugin
+            ? `Plugin <strong>${esc(plugin)}</strong> is trying to read data that doesn't exist (possibly missing config values or player data). Update the plugin or check its configuration files.`
+            : `This may be caused by corrupted data or a missing configuration entry.`}
+        </div>`
+      };
+    case 'undefined_property':
+      return {
+        severity: 'warning',
+        title: 'Undefined property access',
+        body: `<p>The code accessed an object property that hasn't been defined at <code>${esc(file)}:${line}</code>.</p>
+        <p>${pluginNote}</p>
+        <div class="suggestion">
+          ${plugin
+            ? `Update <strong>${esc(plugin)}</strong> to the latest version. This often happens when a plugin was written for an older PocketMine-MP API where the property existed.`
+            : `This may indicate an API change in PocketMine-MP. Check the changelog for breaking changes.`}
+        </div>`
+      };
+    case 'redeclare':
+      return {
+        severity: 'critical',
+        title: 'Class/function redeclaration',
+        body: `<p>Two plugins (or a plugin and PocketMine core) are trying to define the same class or function.</p>
+        <p>${pluginNote}</p>
+        <div class="suggestion">
+          You likely have two plugins that include the same library or define the same namespace. Remove one of the conflicting plugins or ask the developers to use unique namespaces. Also check if you have duplicate <code>.phar</code> files in the plugins folder.
+        </div>`
+      };
+    case 'segfault':
+      return {
+        severity: 'critical',
+        title: 'Segmentation fault',
+        body: `<p>The PHP process crashed with a segmentation fault. This is a low-level crash that is usually not caused by plugin code.</p>
+        <div class="suggestion">
+          Update PHP to the latest version. If you're using extensions (pthreads, etc.), make sure they're compatible. Try running PocketMine-MP with <code>--disable-ansi</code>. If the issue persists, report it to the PMMP team with your OS and PHP version details.
+        </div>`
+      };
+    case 'permission':
+      return {
+        severity: 'warning',
+        title: 'Permission denied',
+        body: `<p>The server couldn't access a file or resource due to permission restrictions.</p>
+        <div class="suggestion">
+          Check file permissions on your server directory. On Linux: <code>chmod -R 755 .</code> and ensure the server process user owns the files. Don't run PocketMine-MP as root.
+        </div>`
+      };
+    default:
+      return {
+        severity: 'critical',
+        title: plugin ? `Crash in plugin ${plugin}` : 'Server crash detected',
+        body: `<p><code>${esc(msg)}</code></p>
+        <p>Error at <code>${esc(file)}:${line}</code>.</p>
+        <p>${pluginNote}</p>
+        <div class="suggestion">
+          ${plugin
+            ? `Try updating <strong>${esc(plugin)}</strong> to the latest version. If the issue persists, remove the plugin and report the bug to its developer with this crash analysis.`
+            : `Ensure PocketMine-MP and all plugins are up to date. If the crash persists, report it on the PMMP GitHub with this crashdump.`}
+        </div>`
+      };
+  }
+}
+
+function card(title, subtitle, bodyHtml, severity) {
+  const icons = { critical: '!', warning: '!', info: 'i', success: '&#10003;' };
+  return `<div class="result-card severity-${severity}">
+    <div class="result-header">
+      <div class="icon">${icons[severity] || 'i'}</div>
+      <div><h3>${title}</h3></div>
+      ${severity !== 'success' && severity !== 'info' ? `<span class="severity-label">${severity}</span>` : ''}
+    </div>
+    <div class="result-body">${bodyHtml}</div>
+  </div>`;
+}
+
+function infoItem(label, value) {
+  return `<div class="info-item"><div class="label">${label}</div><div class="value">${esc(value)}</div></div>`;
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+})();
+</script>
+</body>
+</html>
